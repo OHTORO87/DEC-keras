@@ -1,4 +1,7 @@
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from tool import *
 
 
 def extract_vgg16_features(x):
@@ -308,9 +311,66 @@ def load_stl(data_path='./data/stl'):
 
     return features, y
 
-def load_crawleing_reviews(): # 크롤링 리뷰 로드 함수
-    pass
+def load_crawleing_reviews(file_name): # 크롤링 리뷰 로드 함수
+    """
+    from keras.preprocessing.text import Tokenizer
+    from keras.datasets import imdb
+    max_words = 1000
+
+    print('Loading data...')
+    (x1, y1), (x2, y2) = imdb.load_data(num_words=max_words)
+    x = np.concatenate((x1, x2))
+    y = np.concatenate((y1, y2))
+    print(len(x), 'train sequences')
+
+    num_classes = np.max(y) + 1
+    print(num_classes, 'classes')
+
+    print('Vectorizing sequence data...')
+    tokenizer = Tokenizer(num_words=max_words)
+    x = tokenizer.sequences_to_matrix(x, mode='binary')
+    print('x_train shape:', x.shape)
+    """
+    from gensim.models import Word2Vec
+
+    '''
+    [데이터 로딩]
+    '''
+    print('Loading data...') # 데이터 로딩
+    df_all = csv_reader(file_name) # csv 파일 load
+    df_preprocess = df_all.loc[:, ['score','preprocessed_review']] # 점수와 전처리된 리뷰만 가져옴
+    df_clean = df_preprocess.dropna(axis=0) # nan 값이 있는 행 삭제
+    df_reindex = df_clean.reset_index(drop=True) # 인덱스 재정렬
+    x1, y1 = df_reindex['preprocessed_review'], df_reindex['score'] # x 리뷰, y 점수
+
+    '''
+    [okt 형태소 분류]
+    '''
+    print('okt 형태소 분류...') # 형태소 분류
+    df_x1 = pd.DataFrame(x1) # 리뷰 데이터 프레임 변환
+    tokenized_riviews = okt_morph(df_x1) # 전처리된 리뷰 데이터 토크나이징
+
+    '''
+    [word2vec]
+    size : 워드벡터의 특징 값. 임베딩 된 벡터의 차원
+    window = 컨텍스트 윈도우 크기
+    min_count = 단어 최소 빈도 수 제한(빈도가 적은 단어는 학습하지 않는다)
+    workers = 학습을 위한 프로세스 수
+    sg = 0은 CBOW, 1은 Skip-gram
+    '''
+    print('Vectorizing sequence data...')  # 데이터 벡터화
+    model = Word2Vec(sentences=tokenized_riviews, size=100, window=5, min_count=25, workers=4, sg=0)
+    model_result = model.wv.most_similar("만족") # 어떤 단어와 비슷한지 확인
+    # a = model.wv.vectors.shape # 훈련된 모델 shape 확인
+
+
+    return model_result
+
     # return x.astype(float), y
+    # return x1, y1
+    # return tokenizer, y1
+
+
 
 
 # 여기에 크롤링>전처리된 데이터를 로드하는 것을 추가해야한다.
@@ -335,7 +395,21 @@ def load_data(dataset_name):
         print('Not defined for loading', dataset_name)
         exit(0)
 
-# 그리고 전처리된 데이터를 불러오는 def를 정의해줘야한다
-# 텍스트 데이터 불러오는 함수에서 참고하되
-# tokenizer = Tokenizer(num_words=max_words) > okt 함수로 구현
-# x = tokenizer.sequences_to_matrix(x, mode='binary') > word2vec 함수로 구현
+
+
+if __name__ == "__main__":
+    tokenized_data = load_crawleing_reviews("naver_review_test_data")
+    print(tokenized_data)
+
+
+
+    # 리뷰 길이 분포 확인
+    '''
+    print('리뷰의 최대 길이 :', max(len(l) for l in tokenized_data))
+    print('리뷰의 평균 길이 :', sum(map(len, tokenized_data)) / len(tokenized_data))
+    plt.hist([len(s) for s in tokenized_data], bins=50)
+    plt.xlabel('length of samples')
+    plt.ylabel('number of samples')
+    plt.show()
+    '''
+
