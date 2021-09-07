@@ -343,4 +343,5 @@ if __name__ == "__main__":
     print('clustering time: ', (time() - t0))
 
     # 데이터 확인
-    print(y, y_pred)
+    print(f'라벨링 값 : {y}')
+    print(f'예측 값 : {y_pred}')

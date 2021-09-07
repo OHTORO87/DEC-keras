@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from tool import *
+from gensim.models import Word2Vec, KeyedVectors
 
 
 def extract_vgg16_features(x):
@@ -312,42 +313,19 @@ def load_stl(data_path='./data/stl'):
     return features, y
 
 def load_crawleing_reviews(file_name): # 크롤링 리뷰 로드 함수
-    """
-    from keras.preprocessing.text import Tokenizer
-    from keras.datasets import imdb
-    max_words = 1000
 
-    print('Loading data...')
-    (x1, y1), (x2, y2) = imdb.load_data(num_words=max_words)
-    x = np.concatenate((x1, x2))
-    y = np.concatenate((y1, y2))
-    print(len(x), 'train sequences')
-
-    num_classes = np.max(y) + 1
-    print(num_classes, 'classes')
-
-    print('Vectorizing sequence data...')
-    tokenizer = Tokenizer(num_words=max_words)
-    x = tokenizer.sequences_to_matrix(x, mode='binary')
-    print('x_train shape:', x.shape)
-    """
-    from gensim.models import Word2Vec
-
-    '''
-    [데이터 로딩]
-    '''
     print('Loading data...') # 데이터 로딩
     df_all = csv_reader(file_name) # csv 파일 load
     df_preprocess = df_all.loc[:, ['score','preprocessed_review']] # 점수와 전처리된 리뷰만 가져옴
     df_clean = df_preprocess.dropna(axis=0) # nan 값이 있는 행 삭제
     df_reindex = df_clean.reset_index(drop=True) # 인덱스 재정렬
-    x1, y1 = df_reindex['preprocessed_review'], df_reindex['score'] # x 리뷰, y 점수
+    x, y = df_reindex['preprocessed_review'], df_reindex['score'] # x 리뷰, y 점수
 
     '''
     [okt 형태소 분류]
     '''
     print('okt 형태소 분류...') # 형태소 분류
-    df_x1 = pd.DataFrame(x1) # 리뷰 데이터 프레임 변환
+    df_x1 = pd.DataFrame(x) # 리뷰 데이터 프레임 변환
     tokenized_riviews = okt_morph(df_x1) # 전처리된 리뷰 데이터 토크나이징
 
     '''
@@ -359,14 +337,22 @@ def load_crawleing_reviews(file_name): # 크롤링 리뷰 로드 함수
     sg = 0은 CBOW, 1은 Skip-gram
     '''
     print('Vectorizing sequence data...')  # 데이터 벡터화
-    model = Word2Vec(sentences=tokenized_riviews, size=100, window=5, min_count=25, workers=4, sg=0)
-    model_result = model.wv.most_similar("만족") # 어떤 단어와 비슷한지 확인
+    model = Word2Vec(sentences=tokenized_riviews, size=100, window=5, min_count=5, workers=4, sg=1)
+    model_result = model.wv.most_similar("청결") # 어떤 단어와 비슷한지 확인
     # a = model.wv.vectors.shape # 훈련된 모델 shape 확인
-
-
     return model_result
 
-    # return x.astype(float), y
+    # 단어벡터를 구한다.
+    # word_vectors = model.wv
+
+    vocabs = word_vectors.vocab.keys()
+    word_vectors_list = [word_vectors[v] for v in vocabs]
+
+
+    # return word_vectors
+    # return model
+    # return word_vectors.astype(float), y1
+    # return word_vectors, y
     # return x1, y1
     # return tokenizer, y1
 
@@ -399,7 +385,24 @@ def load_data(dataset_name):
 
 if __name__ == "__main__":
     tokenized_data = load_crawleing_reviews("naver_review_test_data")
-    print(tokenized_data)
+    print(f'word2vec : {tokenized_data}')
+    # print(f'y : {y}')
+
+
+    # print(f"모델 shape : {tokenized_data.wv.vectors.shape}")
+    # print(f"모델 타입 : {type(tokenized_data)}")
+    # print(f'{tokenized_data[:10]}')
+
+
+    # pd.DataFrame(tokenized_data, index=vocab, columns=["IDF"])
+
+
+
+    # model 저장
+
+    # tokenized_data.wv.save_word2vec_format('riview_model_w2v')  # 모델 저장
+    # loaded_model = KeyedVectors.load_word2vec_format("eng_w2v")  # 모델 로드
+
 
 
 
@@ -411,5 +414,12 @@ if __name__ == "__main__":
     plt.xlabel('length of samples')
     plt.ylabel('number of samples')
     plt.show()
+    '''
+
+    # imdb 로드 데이터 확인
+    '''
+    x, y= load_imdb()
+    print(f'imdb_x 값 : {x}')
+    print(f'imdb_y 값 : {y}')
     '''
 

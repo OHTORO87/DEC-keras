@@ -16,6 +16,7 @@ def csv_reader(file_name):
     return read_data
 
 
+
 # 형태소 분석 함수
 def okt_morph(dataframe):
     # 범위 지정 가능
