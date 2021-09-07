@@ -1,0 +1,42 @@
+# 기록 1
+* GPU 할당 번호를 바꿈
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+* mnist 테스트
+========================================================================================================================
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+input (InputLayer)           [(None, 784)]             0
+_________________________________________________________________
+encoder_0 (Dense)            (None, 500)               392500
+_________________________________________________________________
+encoder_1 (Dense)            (None, 500)               250500
+_________________________________________________________________
+encoder_2 (Dense)            (None, 2000)              1002000
+_________________________________________________________________
+encoder_3 (Dense)            (None, 10)                20010
+_________________________________________________________________
+clustering (ClusteringLayer) (None, 10)                100
+=================================================================
+Total params: 1,665,110
+Trainable params: 1,665,110
+Non-trainable params: 0
+_________________________________________________________________
+Update interval 140
+Save interval 1365
+Initializing cluster centers with k-means.
+
+
+Iter 5880: acc = 0.96059, nmi = 0.90227, ari = 0.91529  ; loss= 0.11461
+delta_label  0.0009 < tol  0.001
+Reached tolerance threshold. Stopping training.
+saving model to: results/DEC_model_final.h5
+/home/ubuntu/anaconda3/envs/tf2_py38_DEC/lib/python3.8/site-packages/sklearn/utils/linear_assignment_.py:124: FutureWarning: The linear_assignment function is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  warnings.warn(
+acc: 0.9605857142857143
+clustering time:  180.99016213417053
+========================================================================================================================
+
+# 기록 2
+* idmb 테스트
