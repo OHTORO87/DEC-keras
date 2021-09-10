@@ -331,23 +331,48 @@ def load_crawleing_reviews(file_name): # 크롤링 리뷰 로드 함수
     '''
     [word2vec]
     size : 워드벡터의 특징 값. 임베딩 된 벡터의 차원
-    window = 컨텍스트 윈도우 크기
+    window = 타켓단어 앞뒤로 얼마나 학습에 쓸것인가
     min_count = 단어 최소 빈도 수 제한(빈도가 적은 단어는 학습하지 않는다)
     workers = 학습을 위한 프로세스 수
     sg = 0은 CBOW, 1은 Skip-gram
     '''
     print('Vectorizing sequence data...')  # 데이터 벡터화
-    model = Word2Vec(sentences=tokenized_riviews, size=100, window=5, min_count=5, workers=4, sg=1)
-    model_result = model.wv.most_similar("청결") # 어떤 단어와 비슷한지 확인
-    # a = model.wv.vectors.shape # 훈련된 모델 shape 확인
-    return model_result
+    model = Word2Vec(sentences=tokenized_riviews, size=100, window=10, min_count=5, workers=4, sg=1) # 모델 학습
+    # model_result = model.wv.most_similar("청결") # 어떤 단어와 비슷한지 확인
 
+    # 모델 save
+    print('Saving model...')
+    model_name = 'word2vec_test_model'
+    model.save(model_name)
+
+    # 문장에서 단어 벡터의 평균을 구함?
+    size = 100 # model의 size와 동일하게 설정(벡터의 차원수)
+    feature_vec = np.zeros((size,), dtype='float32') # 0으로 채운 배열로 초기화
+
+    nwords = 0
+    # Index2word는 모델 사전에 있는 단어명을 담은 리스트. 속도 향상을 위해 set 형태로 초기화
+    index2word_set = set(model.wv.index2word)
+
+    # 전처리df를 리스트로 바꾼뒤 전체에서 하나씩 뽑아서 모델에 포함 되어 있으면 feature에 추가함
+    '''
+    pre_list : 전처리가 끝난 리뷰 데이터를 list로 만든것
+        
+    '''
+    # for word in pre_list:
+
+
+
+
+
+
+    # model_shape = model.wv.vectors.shape # 훈련된 모델 shape 확인
     # 단어벡터를 구한다.
     # word_vectors = model.wv
+    # vocabs = word_vectors.vocab.keys()
+    # word_vectors_list = [word_vectors[v] for v in vocabs]
 
-    vocabs = word_vectors.vocab.keys()
-    word_vectors_list = [word_vectors[v] for v in vocabs]
-
+    # return model_result
+    return tokenized_riviews
 
     # return word_vectors
     # return model
@@ -355,7 +380,6 @@ def load_crawleing_reviews(file_name): # 크롤링 리뷰 로드 함수
     # return word_vectors, y
     # return x1, y1
     # return tokenizer, y1
-
 
 
 
@@ -376,7 +400,7 @@ def load_data(dataset_name):
     elif dataset_name == 'imdb':
         return load_imdb()
     elif dataset_name == 'crawling_reviews': # 크롤링 리뷰 로드 함수값을 리턴 받는다
-        return load_crawleing_reviews()
+        return load_crawleing_reviews(file_name='naver_review_test_data')
     else:
         print('Not defined for loading', dataset_name)
         exit(0)
@@ -384,42 +408,42 @@ def load_data(dataset_name):
 
 
 if __name__ == "__main__":
-    tokenized_data = load_crawleing_reviews("naver_review_test_data")
-    print(f'word2vec : {tokenized_data}')
-    # print(f'y : {y}')
-
-
+    # tokenized_data = load_crawleing_reviews("naver_review_test_data")
+    # print(f'okt 품사적용 테스트 : {tokenized_data[:]}')
     # print(f"모델 shape : {tokenized_data.wv.vectors.shape}")
-    # print(f"모델 타입 : {type(tokenized_data)}")
+    # print(f"모델 프린트 : {tokenized_data}")
     # print(f'{tokenized_data[:10]}')
-
-
     # pd.DataFrame(tokenized_data, index=vocab, columns=["IDF"])
-
-
-
     # model 저장
-
     # tokenized_data.wv.save_word2vec_format('riview_model_w2v')  # 모델 저장
     # loaded_model = KeyedVectors.load_word2vec_format("eng_w2v")  # 모델 로드
 
 
 
 
-    # 리뷰 길이 분포 확인
-    '''
-    print('리뷰의 최대 길이 :', max(len(l) for l in tokenized_data))
-    print('리뷰의 평균 길이 :', sum(map(len, tokenized_data)) / len(tokenized_data))
-    plt.hist([len(s) for s in tokenized_data], bins=50)
-    plt.xlabel('length of samples')
-    plt.ylabel('number of samples')
-    plt.show()
-    '''
 
-    # imdb 로드 데이터 확인
+
     '''
-    x, y= load_imdb()
-    print(f'imdb_x 값 : {x}')
-    print(f'imdb_y 값 : {y}')
+    Okt 형태소 분류 데이터 csv에 저장하기
     '''
+    okt_csv("naver_reiview_preprocess_merge_latest")
+
+    '''
+    리뷰 길이 분포 확인
+    '''
+    # print('리뷰의 최대 길이 :', max(len(l) for l in tokenized_data))
+    # print('리뷰의 평균 길이 :', sum(map(len, tokenized_data)) / len(tokenized_data))
+    # plt.hist([len(s) for s in tokenized_data], bins=50)
+    # plt.xlabel('length of samples')
+    # plt.ylabel('number of samples')
+    # plt.show()
+
+
+    '''
+    imdb 로드 데이터 확인
+    '''
+    # x, y= load_imdb()
+    # print(f'imdb_x 값 : {x}')
+    # print(f'imdb_y 값 : {y}')
+
 

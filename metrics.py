@@ -25,3 +25,7 @@ def acc(y_true, y_pred):
     from sklearn.utils.linear_assignment_ import linear_assignment
     ind = linear_assignment(w.max() - w)
     return sum([w[i, j] for i, j in ind]) * 1.0 / y_pred.size
+
+
+    # 모델 평가하는 부분
+    # evaluate 부분

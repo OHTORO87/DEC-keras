@@ -203,7 +203,7 @@ class DEC(object):
         t1 = time()
         print('Initializing cluster centers with k-means.')
         kmeans = KMeans(n_clusters=self.n_clusters, n_init=20)
-        y_pred = kmeans.fit_predict(self.encoder.predict(x))
+        y_pred = kmeans.fit_predict(self.encoder.predict(x)) # 7번 모델 사용하기
         y_pred_last = np.copy(y_pred)
         self.model.get_layer(name='clustering').set_weights([kmeans.cluster_centers_])
 
@@ -318,13 +318,19 @@ if __name__ == "__main__":
         update_interval = 30
         pretrain_epochs = 10
 
+        # 수치에 대해 알아보고 조정하기
+    elif args.dataset == 'crawling_reviews':
+        update_interval = 30
+        pretrain_epochs = 10
+
     if args.update_interval is not None:
         update_interval = args.update_interval
     if args.pretrain_epochs is not None:
         pretrain_epochs = args.pretrain_epochs
 
     # prepare the DEC model
-    dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=n_clusters, init=init)
+    # dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=n_clusters, init=init)
+    dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 5], n_clusters=n_clusters, init=init)
 
     if args.ae_weights is None:
         dec.pretrain(x=x, y=y, optimizer=pretrain_optimizer,
@@ -339,7 +345,7 @@ if __name__ == "__main__":
     # sgd 기본 lr = 0.01
     y_pred = dec.fit(x, y=y, tol=args.tol, maxiter=args.maxiter, batch_size=args.batch_size,
                      update_interval=update_interval, save_dir=args.save_dir)
-    print('acc:', metrics.acc(y, y_pred))
+    print('acc:', metrics.acc(y, y_pred)) # predict
     print('clustering time: ', (time() - t0))
 
     # 데이터 확인
