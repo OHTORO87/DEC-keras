@@ -4,37 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5f8afb6f-f68e-402d-95f8-b853ba3891c4" name="변경" comment="20210907_end">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DEC RECORD" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DEC.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/JPype1-1.1.2-cp38-cp38-win_amd64.whl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/autoencoders.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/datasets.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/metrics.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run_exp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool.py" afterDir="false" />
+    <list default="true" id="5f8afb6f-f68e-402d-95f8-b853ba3891c4" name="변경" comment="20210911_end">
       <change beforePath="$PROJECT_DIR$/.idea/DEC-keras.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/DEC-keras.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/csv-plugin.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/DEC RECORD" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/DEC.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/LICENSE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/autoencoders.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/data/reuters/get_data.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/data/stl/get_data.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/data/usps/download_usps.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/datasets.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/image/DEC_기록8_리뷰통계.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/metrics.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/results/exp1/results.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/run_exp.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DEC-keras/tool.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/DEC RECORD" beforeDir="false" afterPath="$PROJECT_DIR$/DEC RECORD" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DEC.py" beforeDir="false" afterPath="$PROJECT_DIR$/DEC.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/datasets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/tool.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,14 +53,41 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../wooseok_project" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.language" />
   </component>
-  <component name="RunManager" selected="Python.datasets (1)">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\CPB06GameN\Desktop\DEC-keras\data" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.tool (1)">
+    <configuration name="DEC" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="DEC-keras" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/DEC.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="datasets (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="DEC-keras" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -149,6 +154,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="tool (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="DEC-keras" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tool.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="tool" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="DEC-keras" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -176,9 +203,13 @@
       <item itemvalue="Python.datasets" />
       <item itemvalue="Python.tool" />
       <item itemvalue="Python.datasets (1)" />
+      <item itemvalue="Python.tool (1)" />
+      <item itemvalue="Python.DEC" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.tool (1)" />
+        <item itemvalue="Python.DEC" />
         <item itemvalue="Python.datasets (1)" />
         <item itemvalue="Python.datasets" />
         <item itemvalue="Python.tool" />
@@ -209,7 +240,31 @@
       <workItem from="1631291640781" duration="7000" />
       <workItem from="1631291661847" duration="10000" />
       <workItem from="1631291812430" duration="318000" />
-      <workItem from="1631293883073" duration="696000" />
+      <workItem from="1631293883073" duration="1033000" />
+      <workItem from="1631294935571" duration="11000" />
+      <workItem from="1631446416797" duration="1232000" />
+      <workItem from="1631468672302" duration="1276000" />
+      <workItem from="1631473313037" duration="2234000" />
+      <workItem from="1631481844090" duration="18000" />
+      <workItem from="1631505833947" duration="2924000" />
+      <workItem from="1631584281953" duration="154000" />
+      <workItem from="1631601420705" duration="3810000" />
+      <workItem from="1631668357215" duration="1616000" />
+      <workItem from="1631704966579" duration="2561000" />
+      <workItem from="1631760328319" duration="1345000" />
+      <workItem from="1631779851123" duration="2063000" />
+      <workItem from="1631784165471" duration="5966000" />
+      <workItem from="1631858305933" duration="107000" />
+      <workItem from="1631868566383" duration="140000" />
+      <workItem from="1631869823105" duration="102000" />
+      <workItem from="1631878825389" duration="54000" />
+      <workItem from="1632220839541" duration="168000" />
+      <workItem from="1632221150247" duration="246000" />
+      <workItem from="1632372857540" duration="16579000" />
+      <workItem from="1632730783981" duration="40120000" />
+      <workItem from="1632892611699" duration="28800000" />
+      <workItem from="1633138014149" duration="17197000" />
+      <workItem from="1633342376764" duration="12037000" />
     </task>
     <task id="LOCAL-00001" summary="2번째 커밋">
       <created>1630988016083</created>
@@ -239,7 +294,14 @@
       <option name="project" value="LOCAL" />
       <updated>1631004132305</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="20210911_end">
+      <created>1631294607722</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1631294607722</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -261,12 +323,15 @@
     <MESSAGE value="2번째 커밋" />
     <MESSAGE value="20210907" />
     <MESSAGE value="20210907_end" />
-    <option name="LAST_COMMIT_MESSAGE" value="20210907_end" />
+    <MESSAGE value="20210911_end" />
+    <option name="LAST_COMMIT_MESSAGE" value="20210911_end" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/DEC_keras$datasets__1_.coverage" NAME="datasets (1) 커버리지 결과" MODIFIED="1631294169396" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DEC_keras$DEC.coverage" NAME="DEC 커버리지 결과" MODIFIED="1633412838775" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DEC_keras$datasets__1_.coverage" NAME="datasets (1) 커버리지 결과" MODIFIED="1633412388412" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DEC_keras$datasets.coverage" NAME="datasets 커버리지 결과" MODIFIED="1631166223001" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/DEC-keras" />
     <SUITE FILE_PATH="coverage/DEC_keras$tool.coverage" NAME="tool 커버리지 결과" MODIFIED="1631083938744" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/DEC-keras" />
+    <SUITE FILE_PATH="coverage/DEC_keras$tool__1_.coverage" NAME="tool (1) 커버리지 결과" MODIFIED="1633413350044" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DEC_keras$dec.coverage" NAME="dec 커버리지 결과" MODIFIED="1630636372676" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/DEC-keras-master" />
   </component>
 </project>

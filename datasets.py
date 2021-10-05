@@ -3,6 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tool import *
 from gensim.models import Word2Vec, KeyedVectors
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tqdm import tqdm
+
+
 
 
 def extract_vgg16_features(x):
@@ -312,74 +316,119 @@ def load_stl(data_path='./data/stl'):
 
     return features, y
 
-def load_crawleing_reviews(file_name): # 크롤링 리뷰 로드 함수
 
-    print('Loading data...') # 데이터 로딩
-    df_all = csv_reader(file_name) # csv 파일 load
-    df_preprocess = df_all.loc[:, ['score','preprocessed_review']] # 점수와 전처리된 리뷰만 가져옴
-    df_clean = df_preprocess.dropna(axis=0) # nan 값이 있는 행 삭제
-    df_reindex = df_clean.reset_index(drop=True) # 인덱스 재정렬
-    x, y = df_reindex['preprocessed_review'], df_reindex['score'] # x 리뷰, y 점수
 
-    '''
-    [okt 형태소 분류]
-    '''
-    print('okt 형태소 분류...') # 형태소 분류
-    df_x1 = pd.DataFrame(x) # 리뷰 데이터 프레임 변환
-    tokenized_riviews = okt_morph(df_x1) # 전처리된 리뷰 데이터 토크나이징
 
-    '''
-    [word2vec]
-    size : 워드벡터의 특징 값. 임베딩 된 벡터의 차원
-    window = 타켓단어 앞뒤로 얼마나 학습에 쓸것인가
-    min_count = 단어 최소 빈도 수 제한(빈도가 적은 단어는 학습하지 않는다)
-    workers = 학습을 위한 프로세스 수
-    sg = 0은 CBOW, 1은 Skip-gram
-    '''
-    print('Vectorizing sequence data...')  # 데이터 벡터화
-    model = Word2Vec(sentences=tokenized_riviews, size=100, window=10, min_count=5, workers=4, sg=1) # 모델 학습
-    # model_result = model.wv.most_similar("청결") # 어떤 단어와 비슷한지 확인
+# word2vec 모델 저장
+def save_model(data_file):
+    pass
+    # # 데이터 로딩
+    # print('Loading data...')
+    # df_all = csv_reader(file_name) # csv 파일 load
+    # df_preprocess = df_all.loc[:, ['total_score','tokenized_review']] # 점수와 전처리된 리뷰만 가져옴
+    # df_clean = df_preprocess.dropna(axis=0) # nan 값이 있는 행 삭제
+    # df_reindex = df_clean.reset_index(drop=True) # 인덱스 재정렬
+    # okt_review, label = df_reindex['tokenized_review'], df_reindex['total_score'] # 리뷰, 점수
+    #
+    # # 데이터 리스트 변환
+    # x_list = okt_review.values.tolist()
+    # y_list = label.values.tolist()
+    #
+    # # word2vec
+    # model = Word2Vec(sentences=data_file, size=100, window=10, min_count=20, workers=4, sg=1) # 모델 학습
+    # model.save(f"model_mincnt_20_{file_name}")
 
-    # 모델 save
-    print('Saving model...')
-    model_name = 'word2vec_test_model'
-    model.save(model_name)
 
-    # 문장에서 단어 벡터의 평균을 구함?
-    size = 100 # model의 size와 동일하게 설정(벡터의 차원수)
-    feature_vec = np.zeros((size,), dtype='float32') # 0으로 채운 배열로 초기화
+
+# 크롤링 리뷰 벡터로 불러오는 함수
+def load_crawling_data():
+
+
+    raw_reivews = []
+    y_list = []
+    # 데이터가 이미 형태소 분석이 되어 있는 경우
+
+    print('Loading data...')
+    df = csv_reader('test_score0_score5')
+    df.dropna(subset=['tokenized_review', 'total_score'], inplace=True)
+    df = df.reset_index(drop=True)
+    y = np.array(df['total_score'], dtype='int64')
+
+    with gzip.open('pkl_list_test_score0_score5.pkl', 'rb') as f:
+        data = pickle.load(f)
+        data = data[:y.size]
+
+    num_classes = np.max(y)
+    print(num_classes, 'classes')
+
+    print('Vectorizing sequence data...')
+    # model = Word2Vec.load('model_mincnt_20')
+    model = Word2Vec(sentences=data, size=100, window=10, min_count=30, workers=4, sg=1)  # 모델 학습
+
+    x = np.empty((100,), dtype='float32')
+    nwords = 0.
+    counter = 0.
+    # GPU ver.
+    idx_to_key = model.wv.index2word
+
+    # local ver.
+    # idx_to_key = model.wv.index_to_key
+    # key_to_idx = model.wv.key_to_index
+    index2word_set = set(idx_to_key)
+    for idx in tqdm(range(len(data)), desc="벡터화"):
+        featureVec = np.zeros((100,), dtype='float32')
+        for word in data[idx]:
+            if word in index2word_set:
+                nwords = nwords + 1.
+                featureVec = np.add(featureVec, model.wv[word])
+        is_all_zero = not np.any(featureVec)
+        if is_all_zero:
+            pass
+        else:
+            featureVec = np.divide(featureVec, nwords)
+            # print('featureVec :', featureVec)
+            x = np.append(x, featureVec, axis=0)
+            # y의 개수를 x만큼 맞추기 위해
+
+            y_list.append(y[idx])
+            raw_reivews.append(df['review'][idx])
+
+            # x[int(counter)] = featureVec
+            # n_values = np.max(featureVec) + 1
+            # x = np.eye(n_values)[x[counter]]
+        counter += 1
+            # print('x :', counter, x[int(counter)])
+    # x = to_categorical(x, num_classes=x)
+    y = np.array(y_list, dtype='int64')
+    x = x[100:]
+    x = x.reshape(y.size, -1)
+    print(len(y), 'train sequences')
+    print('x_train shape:', x.shape)
+    print('y shape:', y.shape)
+    print("raw_reviews shape:", len(raw_reivews))
+
+    return x.astype(float), y, raw_reivews
+
+
+# 문장에서 단어 벡터의 평균을 구하는 함수
+def make_feat_vec(words, model, num_features):
+
+    # 0으로 채운 배열로 초기화 한다(속도향상을 위해)
+    feature_vec = np.zeros((num_features,), dtype="float32")
 
     nwords = 0
-    # Index2word는 모델 사전에 있는 단어명을 담은 리스트. 속도 향상을 위해 set 형태로 초기화
+    # index2word는 모델 사전에 있는 단어명을 담은 리스트
+    # 속도 향상을 위해 set 형태로 초기화
     index2word_set = set(model.wv.index2word)
+    # 루프를 돌며 모델 사전에 포함이 되는 단어면 피쳐에 추가
+    for word in words:
+        if word in index2word_set:
+            nwords += 1
+            feature_vec = np.add(feature_vec, model[word])
 
-    # 전처리df를 리스트로 바꾼뒤 전체에서 하나씩 뽑아서 모델에 포함 되어 있으면 feature에 추가함
-    '''
-    pre_list : 전처리가 끝난 리뷰 데이터를 list로 만든것
-        
-    '''
-    # for word in pre_list:
-
-
-
-
-
-
-    # model_shape = model.wv.vectors.shape # 훈련된 모델 shape 확인
-    # 단어벡터를 구한다.
-    # word_vectors = model.wv
-    # vocabs = word_vectors.vocab.keys()
-    # word_vectors_list = [word_vectors[v] for v in vocabs]
-
-    # return model_result
-    return tokenized_riviews
-
-    # return word_vectors
-    # return model
-    # return word_vectors.astype(float), y1
-    # return word_vectors, y
-    # return x1, y1
-    # return tokenizer, y1
+    # 결과를 단어수로 나누어 평균을 구한다.
+    feature_vec = np.divide(feature_vec, nwords)
+    return feature_vec
 
 
 
@@ -400,50 +449,92 @@ def load_data(dataset_name):
     elif dataset_name == 'imdb':
         return load_imdb()
     elif dataset_name == 'crawling_reviews': # 크롤링 리뷰 로드 함수값을 리턴 받는다
-        return load_crawleing_reviews(file_name='naver_review_test_data')
+        return load_crawling_data()
     else:
         print('Not defined for loading', dataset_name)
         exit(0)
 
 
 
+
 if __name__ == "__main__":
-    # tokenized_data = load_crawleing_reviews("naver_review_test_data")
-    # print(f'okt 품사적용 테스트 : {tokenized_data[:]}')
-    # print(f"모델 shape : {tokenized_data.wv.vectors.shape}")
-    # print(f"모델 프린트 : {tokenized_data}")
-    # print(f'{tokenized_data[:10]}')
-    # pd.DataFrame(tokenized_data, index=vocab, columns=["IDF"])
-    # model 저장
-    # tokenized_data.wv.save_word2vec_format('riview_model_w2v')  # 모델 저장
-    # loaded_model = KeyedVectors.load_word2vec_format("eng_w2v")  # 모델 로드
+
+
+    # 데이터 일부 추출
+    '''
+    df = csv_reader('all_hotels_review_data(final)')
+    df.dropna(subset=['tokenized_review', 'total_score'], inplace=True)
+    df = df.reset_index(drop=True) # 590만개
+    
+    # 데이터 셔플
+    df_shu = df.sample(frac=1).reset_index(drop=True)
+
+    # 데이터 범위 설정
+    df_50 = df_shu.loc[:500000,:]
+    df_100 = df_shu.loc[:1000000,:]
+    
+    # 데이터 저장
+    csv_save(df_50,'test_csv_50')
+    csv_save(df_100,'test_csv_100')
+    csv_save(df, 'all_hotels_review_data(dropna)')
+    '''
 
 
 
 
 
+    # 저장된 리뷰 list로 모델 추출
 
     '''
-    Okt 형태소 분류 데이터 csv에 저장하기
+    list_reviews = load_list('test_csv_50')
+    model = Word2Vec(sentences=list_reviews, size=100, window=10, min_count=40, workers=4, sg=1)  # 모델 학습
+    model.save(f"model_csv_50_mincnt_50")
     '''
-    okt_csv("naver_reiview_preprocess_merge_latest")
-
-    '''
-    리뷰 길이 분포 확인
-    '''
-    # print('리뷰의 최대 길이 :', max(len(l) for l in tokenized_data))
-    # print('리뷰의 평균 길이 :', sum(map(len, tokenized_data)) / len(tokenized_data))
-    # plt.hist([len(s) for s in tokenized_data], bins=50)
-    # plt.xlabel('length of samples')
-    # plt.ylabel('number of samples')
-    # plt.show()
 
 
+
+    # 3d 형태로 보기 위한 csv 저장(save tsv files for visualization)
     '''
-    imdb 로드 데이터 확인
+    model = Word2Vec.load('model_mincnt_40')
+    df = pd.DataFrame(model.wv.vectors)
+    df.to_csv('./model_mincnt_40_vectors.tsv', sep='\t', index=False)
+    word_df = pd.DataFrame(model.wv.index2word)
+    word_df.to_csv('./model_mincnt_40_metadata.tsv', sep='\t', index=False)
     '''
-    # x, y= load_imdb()
-    # print(f'imdb_x 값 : {x}')
-    # print(f'imdb_y 값 : {y}')
+
+    # word2vec 모델 저장
+    '''
+    save_model("all_hotels_review_data(final)")
+    '''
+
+
+    # word2vec 모델 로드
+    '''
+    model_20 = Word2Vec.load('model_mincnt_20_all_hotels_review_data(final)')
+    '''
+
+    # 데이터 벡터화
+    '''
+    x, y = load_crawleing_reviews('all_hotels_review_data(final)', model_20)
+    print(f"벡터화된 data : {x}")
+    print(f"label 값 : {y}")
+    '''
+
+    '''
+    [word2vec]
+    size : 워드벡터의 특징 값. 임베딩 된 벡터의 차원
+    window = 타켓단어 앞뒤로 얼마나 학습에 쓸것인가
+    min_count = 단어 최소 빈도 수 제한(빈도가 적은 단어는 학습하지 않는다)
+    workers = 학습을 위한 프로세스 수
+    sg = 0은 CBOW, 1은 Skip-gram
+    '''
+
+    # 유사도 비교
+    '''
+    print('Vectorizing sequence data...')  # 데이터 벡터화
+    model = Word2Vec(sentences=tokenized_riviews, size=100, window=10, min_count=5, workers=4, sg=1) # 모델 학습
+    # model_result = model.wv.most_similar("청결") # 어떤 단어와 비슷한지 확인
+    '''
+
 
 

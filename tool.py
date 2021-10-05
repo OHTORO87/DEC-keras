@@ -3,16 +3,29 @@ import numpy as np
 from tqdm import tqdm
 from konlpy.tag import Okt
 okt = Okt()
-
+import pickle
+import gzip
+import random
 
 # csv 파일 읽기
 def csv_reader(file_name):
     # 경로 설정
-    csv_location = "./data/{name}.csv".format(name= file_name)
+    csv_location = "./data/{name}.csv".format(name = file_name)
     # 로컬 > data_frame > 변수에 할당후 결과 확인
     read_data = pd.read_csv(csv_location, index_col=[0])
 
     return read_data
+
+# csv 파일 저장 함수
+def csv_save(data_name, file_name):
+
+    # 경로 설정
+    csv_location = "./data/{name}.csv".format(name= file_name)
+
+    # data > data_frame > csv 저장
+    crwled_data_frame = pd.DataFrame(data_name)
+    crwled_data_frame.to_csv(csv_location, encoding= 'utf-8')
+
 
 
 # 형태소 분석 함수
@@ -84,8 +97,198 @@ def okt_csv(file_name):
     df_merge.to_csv(f"./data/{file_name}_Okt_version.csv", encoding='utf-8')
 
 
+# okt 리뷰데이터 파싱 함수
+def reviews_parcing(file_name):
+    df_all = csv_reader(file_name)  # csv 파일 load
+    df_preprocess = df_all.loc[:, ['total_score', 'tokenized_review']]  # 점수와 전처리된 리뷰만 가져옴
+    df_clean = df_preprocess.dropna(axis=0)  # nan 값이 있는 행 삭제
+    df_reindex = df_clean.reset_index(drop=True)  # 인덱스 재정렬
+    okt_review, label = df_reindex['tokenized_review'], df_reindex['total_score']
+
+    x_list = okt_review.values.tolist()
+
+    input_final = []
+    for i in tqdm(range(len(x_list)), desc= 'okt 리뷰 data >>> pkl list data'):
+        x_list[i] = x_list[i].replace("[", "")
+        x_list[i] = x_list[i].replace("]", "")
+        x_list[i] = x_list[i].replace(",", "")
+        x_list[i] = x_list[i].replace("'", "")
+        x_list[i] = x_list[i].split()
+
+        input_final.append(x_list[i])
+
+    return input_final
+
+
+# 리스트 파일로 저장(피클)
+def save_list(list, save_name):
+    with gzip.open(f'{save_name}.pkl', 'wb') as f:
+        pickle.dump(list, f, pickle.HIGHEST_PROTOCOL)
+
+# 리스트 파일 불러오기(피클)
+def load_list(save_name):
+    with gzip.open(f'{save_name}.pkl', 'rb') as f:
+        data = pickle.load(f)
+    return data
+
+
+def csv_reindex(origin_file_name):
+
+    csv_location = "./data/{name}.csv".format(name=origin_file_name)
+    read_data = pd.read_csv(csv_location, index_col=[0])
+    df_reindex = read_data.reset_index(drop=True)
+    df_reindex.to_csv(csv_location, encoding='utf-8')
+
 
 
 if __name__ == "__main__":
-   test = okt_morph('naver_review_test_data')
-   print(test[:10])
+
+    files = ['review_data_by_total_score_1',
+             'review_data_by_total_score_2',
+             'review_data_by_total_score_3',
+             'review_data_by_total_score_4',
+             'review_data_by_total_score_5']
+
+
+    # 리뷰 파싱
+    '''
+    for file_name in files:
+        list_reviews = reviews_parcing(file_name)
+        save_list(list_reviews, f'pkl_list_{file_name}')
+    '''
+
+
+    # 극단적인 test data 만들기
+    '''
+    df_score_0 = csv_reader(files[0])
+    df_score_5 = csv_reader(files[4])
+
+    # 랜덤하게 섞기
+    df_score_0 = df_score_0.sample(frac=1).reset_index(drop=True)
+    df_score_5 = df_score_5.sample(frac=1).reset_index(drop=True)
+
+    # 리뷰 1000개씩만 추출
+    df_score_0_idx_from_0_to_100 = df_score_0.loc[:999, :]
+    df_score_5_idx_from_0_to_100 = df_score_5.loc[:999, :]
+
+    df_score_merged = pd.concat([df_score_0_idx_from_0_to_100, df_score_5_idx_from_0_to_100])
+    df_score_merged = df_score_merged.dropna(subset=['total_score'])
+
+    df_score_merged = df_score_merged.reset_index(drop=True)
+    df_score_merged['total_score'] = int(1)
+
+    csv_save(df_score_merged, 'test_score0_score5')
+
+    # 한개의 파일만 파싱
+
+    list_reviews = reviews_parcing('test_score0_score5')
+    save_list(list_reviews, 'pkl_list_test_score0_score5')
+    '''
+
+
+    # total_review score 별로 csv 저장
+    '''
+    df_all_reviews = csv_reader('all_hotels_review_data(dropna)')
+
+    for score in range(1,6):
+        score_condition = (df_all_reviews.total_score == score)
+        df_selected_by_score = df_all_reviews[score_condition]
+        df_selected_by_score = df_selected_by_score.reset_index(drop=True)
+
+        csv_save(df_selected_by_score, f'review_data_by_total_score_{score}')
+    '''
+
+
+    # 가장 긴 리뷰 길이 구하기
+    '''
+    list_pkl = load_list('review_list')
+    all_sentence_len_list = []
+    for list_each in tqdm(list_pkl, desc="리뷰 길이 구하기"):
+        list_each_len = len(list_each)
+        all_sentence_len_list.append(list_each_len)
+    
+    max_len = max(all_sentence_len_list)
+    '''
+
+
+    # 전체리뷰(600만개) score 분포 구하기
+
+    '''
+    df_review_data_all = csv_reader('all_hotels_review_data(final)')
+
+    print('** 모든 리뷰 데이터 score 분포 **')
+    print('=============================')
+    print(df_review_data_all['total_score'].value_counts())
+    '''
+
+
+    # 클러스터 num 으로 구분하여 csv 저장후 자료 살펴보기
+    '''
+    df_cluster_all = csv_reader('test_cluster_data_min_cnt_30')
+    cluster_num = 5
+    for num in range(cluster_num):
+        cluster_condition = (df_cluster_all.cluster_num == num)
+        df_cluster_each = df_cluster_all[cluster_condition]
+        csv_save(df_cluster_each, f'cluster_{num}')
+    '''
+
+    '''
+    df_cluster_all = csv_reader('cluster_reviewdata_total_score_3')
+    cluster_condition = (df_cluster_all.cluster_num == 1)
+    df_cluster_each = df_cluster_all[cluster_condition]
+    csv_save(df_cluster_each, 'cluster_num_1_of_total_score_3')
+    '''
+
+    # 클러스터링 통계 구해 보기
+    '''
+    cluster_num = 5
+    for num in range(cluster_num):
+        df_test_by_cluster_num = csv_reader(f'cluster_{num}')
+        print(f'** cluster_num : {num} **')
+        print('** score 분포 **')
+        print('==================')
+        print(df_test_by_cluster_num['score'].value_counts())
+        print('==================')
+    '''
+
+
+    df_test_for_mincnt = csv_reader('cluster_test_score0_score5')
+    print('각 스코어 개수')
+    print(df_test_for_mincnt['total_score'].value_counts())
+    print('각 클러스터 개수')
+    print(df_test_for_mincnt['cluster_num'].value_counts())
+
+
+
+
+
+
+
+    '''
+    # 조건 설정
+    cluster_0_condition = (df_cluster_all.cluster_num == 0) # & (df_cluster_all.score == 1)
+    cluster_1_condition = (df_cluster_all.cluster_num == 1)
+    cluster_2_condition = (df_cluster_all.cluster_num == 2)
+    cluster_3_condition = (df_cluster_all.cluster_num == 3)
+    cluster_4_condition = (df_cluster_all.cluster_num == 4)
+
+    # 조건에 맞는 데이터 출력 및 저장
+    df_cluster_0 = df_cluster_all[cluster_0_condition]
+    df_cluster_1 = df_cluster_all[cluster_1_condition]
+    df_cluster_2 = df_cluster_all[cluster_2_condition]
+    df_cluster_3 = df_cluster_all[cluster_3_condition]
+    df_cluster_4 = df_cluster_all[cluster_4_condition]
+
+    csv_save(df_cluster_0, 'cluster_0')
+    csv_save(df_cluster_1, 'cluster_1')
+    csv_save(df_cluster_2, 'cluster_2')
+    csv_save(df_cluster_3, 'cluster_3')
+    csv_save(df_cluster_4, 'cluster_4')
+    '''
+
+
+
+
+
+
+

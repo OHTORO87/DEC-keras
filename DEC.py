@@ -9,18 +9,26 @@ Usage:
 Author:
     Xifeng Guo. 2017.1.30
 """
+# 우분투
+from keras.engine.topology import Layer, InputSpec
+from keras.optimizers import SGD
+from keras.initializers import VarianceScaling
 
+# 로컬
+# from tensorflow.python.keras.layers import Layer, InputSpec
+# from tensorflow.keras.optimizers import SGD
+# from tensorflow.keras.initializers import VarianceScaling
+
+# 공통
 from time import time
 import numpy as np
 import keras.backend as K
-from keras.engine.topology import Layer, InputSpec
 from keras.layers import Dense, Input
 from keras.models import Model
-from keras.optimizers import SGD
 from keras import callbacks
-from keras.initializers import VarianceScaling
 from sklearn.cluster import KMeans
 import metrics
+from tool import *
 
 
 def autoencoder(dims, act='relu', init='glorot_uniform'):
@@ -277,7 +285,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--dataset', default='crawling_reviews',
-                        choices=['mnist', 'fmnist', 'usps', 'reuters10k', 'stl', 'imdb', 'crawling_reviews']) # 여기에 크롤링 dataset 추가하기
+                        choices=['mnist', 'fmnist', 'usps', 'reuters10k', 'stl', 'imdb', 'crawling_reviews'])# 여기에 크롤링 dataset 추가하기
     parser.add_argument('--batch_size', default=256, type=int)
     parser.add_argument('--maxiter', default=2e4, type=int)
     parser.add_argument('--pretrain_epochs', default=None, type=int)
@@ -293,7 +301,7 @@ if __name__ == "__main__":
 
     # load dataset
     from datasets import load_data
-    x, y = load_data(args.dataset)
+    x, y, raw_review = load_data(args.dataset)
     n_clusters = len(np.unique(y))
 
     init = 'glorot_uniform'
@@ -318,7 +326,7 @@ if __name__ == "__main__":
         update_interval = 30
         pretrain_epochs = 10
 
-        # 수치에 대해 알아보고 조정하기
+    # 수치에 대해 알아보고 조정하기
     elif args.dataset == 'crawling_reviews':
         update_interval = 30
         pretrain_epochs = 10
@@ -330,7 +338,8 @@ if __name__ == "__main__":
 
     # prepare the DEC model
     # dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=n_clusters, init=init)
-    dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 5], n_clusters=n_clusters, init=init)
+    # dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 5], n_clusters=2, init=init)
+    dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 2], n_clusters=2, init=init)
 
     if args.ae_weights is None:
         dec.pretrain(x=x, y=y, optimizer=pretrain_optimizer,
@@ -341,13 +350,42 @@ if __name__ == "__main__":
 
     dec.model.summary()
     t0 = time()
-    dec.compile(optimizer=SGD(0.01, 0.9), loss='kld')
-    # sgd 기본 lr = 0.01
+    dec.compile(optimizer=SGD(0.01, 0.9), loss='kld') # sgd 기본 lr = 0.01
     y_pred = dec.fit(x, y=y, tol=args.tol, maxiter=args.maxiter, batch_size=args.batch_size,
                      update_interval=update_interval, save_dir=args.save_dir)
-    print('acc:', metrics.acc(y, y_pred)) # predict
+    # 학습과정 살펴보기
+    print('acc:', metrics.acc(y, y_pred))
     print('clustering time: ', (time() - t0))
 
     # 데이터 확인
+    '''
     print(f'라벨링 값 : {y}')
     print(f'예측 값 : {y_pred}')
+    '''
+
+
+
+    # 클러스터링 데이터 csv 저장
+
+    cluster_list = []
+
+    # 형태소 분석이 끝난 리뷰 데이터
+    # data = load_list()
+
+    for numbers in range(len(x)):
+        review_text = raw_review[numbers]
+        labeling = y[numbers]
+        cluster_num = y_pred[numbers]
+
+
+        dict_cluster = {
+            'review': review_text,
+            'total_score': labeling,
+            'cluster_num': cluster_num
+        }
+
+        cluster_list.append(dict_cluster)
+
+
+    # 저장
+    csv_save(cluster_list, 'cluster_test_score0_score5')
