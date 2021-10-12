@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from tool import *
-from gensim.models import Word2Vec, KeyedVectors
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tqdm import tqdm
+from gensim.models import Word2Vec, KeyedVectors
 
 
 
@@ -342,41 +342,37 @@ def save_model(data_file):
 
 # 크롤링 리뷰 벡터로 불러오는 함수
 def load_crawling_data():
+    np_size = 100
+    file_name = 'cleandata_labeled_1_5'
+    df = csv_reader(file_name)
+    data = reviews_parcing(file_name)
+    model = Word2Vec(sentences=data, size=np_size, window=15, min_count=5, workers=4, sg=1)  # 모델 학습iter=100
 
+    # 모델 vocab 확인
+    # words = list(model.wv.vocab)
 
-    raw_reivews = []
-    y_list = []
-    # 데이터가 이미 형태소 분석이 되어 있는 경우
+    # 유사도 테스트
+    '''
+    model_result_good = model.wv.most_similar("최고")  # 어떤 단어와 비슷한지 확인
+    model_result_bad = model.wv.most_similar("별로")  # 어떤 단어와 비슷한지 확인
 
-    print('Loading data...')
-    df = csv_reader('test_score0_score5')
-    df.dropna(subset=['tokenized_review', 'total_score'], inplace=True)
-    df = df.reset_index(drop=True)
+    print(model_result_good)
+    print(model_result_bad)
+    '''
+
+    x = np.empty((np_size,), dtype='float32')
     y = np.array(df['total_score'], dtype='int64')
-
-    with gzip.open('pkl_list_test_score0_score5.pkl', 'rb') as f:
-        data = pickle.load(f)
-        data = data[:y.size]
-
-    num_classes = np.max(y)
-    print(num_classes, 'classes')
-
-    print('Vectorizing sequence data...')
-    # model = Word2Vec.load('model_mincnt_20')
-    model = Word2Vec(sentences=data, size=100, window=10, min_count=30, workers=4, sg=1)  # 모델 학습
-
-    x = np.empty((100,), dtype='float32')
     nwords = 0.
     counter = 0.
+    raw_reivews = []
+    y_list = []
+
     # GPU ver.
     idx_to_key = model.wv.index2word
 
-    # local ver.
-    # idx_to_key = model.wv.index_to_key
-    # key_to_idx = model.wv.key_to_index
     index2word_set = set(idx_to_key)
     for idx in tqdm(range(len(data)), desc="벡터화"):
-        featureVec = np.zeros((100,), dtype='float32')
+        featureVec = np.zeros((np_size,), dtype='float32')
         for word in data[idx]:
             if word in index2word_set:
                 nwords = nwords + 1.
@@ -386,21 +382,16 @@ def load_crawling_data():
             pass
         else:
             featureVec = np.divide(featureVec, nwords)
-            # print('featureVec :', featureVec)
             x = np.append(x, featureVec, axis=0)
             # y의 개수를 x만큼 맞추기 위해
 
             y_list.append(y[idx])
             raw_reivews.append(df['review'][idx])
 
-            # x[int(counter)] = featureVec
-            # n_values = np.max(featureVec) + 1
-            # x = np.eye(n_values)[x[counter]]
         counter += 1
-            # print('x :', counter, x[int(counter)])
-    # x = to_categorical(x, num_classes=x)
+
     y = np.array(y_list, dtype='int64')
-    x = x[100:]
+    x = x[np_size:]
     x = x.reshape(y.size, -1)
     print(len(y), 'train sequences')
     print('x_train shape:', x.shape)
@@ -408,6 +399,39 @@ def load_crawling_data():
     print("raw_reviews shape:", len(raw_reivews))
 
     return x.astype(float), y, raw_reivews
+
+
+
+
+
+
+
+    # bert로 vector화
+
+    # from transformers import BertTokenizer
+    # import torch
+    # bert의 코드를 이용하여 단어 임베딩
+    
+    # sentences = df_for_vector['preprocessed_review']
+    # sentences = ["[CLS] " + str(sentence) + " [SEP]" for sentence in sentences]
+    # labels = df_for_vector['total_score'].values
+
+    # 전처리
+    # review_bert = ["[CLS]" + str(s) + "[SEP]" for s in df_for_vector.preprocessed_review]
+    #
+    # # 토크나이징
+    # tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased', do_lower_case=False)
+    # tokenized_texts = [tokenizer.tokenize(s) for s in review_bert]
+    # inputs = torch.tensor(tokenized_texts)
+    # print(tokenized_texts)
+    # print(inputs)
+
+
+
+
+
+
+
 
 
 # 문장에서 단어 벡터의 평균을 구하는 함수
@@ -459,6 +483,7 @@ def load_data(dataset_name):
 
 if __name__ == "__main__":
 
+    load_crawling_data()
 
     # 데이터 일부 추출
     '''
@@ -479,12 +504,7 @@ if __name__ == "__main__":
     csv_save(df, 'all_hotels_review_data(dropna)')
     '''
 
-
-
-
-
     # 저장된 리뷰 list로 모델 추출
-
     '''
     list_reviews = load_list('test_csv_50')
     model = Word2Vec(sentences=list_reviews, size=100, window=10, min_count=40, workers=4, sg=1)  # 모델 학습
@@ -536,5 +556,85 @@ if __name__ == "__main__":
     # model_result = model.wv.most_similar("청결") # 어떤 단어와 비슷한지 확인
     '''
 
+    # 원본 코드
+    '''
+    raw_reivews = []
+    y_list = []
+    # 데이터가 이미 형태소 분석이 되어 있는 경우
+
+    print('Loading data...')
+    df = csv_reader(file_name)
+    df.dropna(subset=['tokenized_review', 'total_score'], inplace=True)
+    df = df.reset_index(drop=True)
+    y = np.array(df['total_score'], dtype='int64')
+
+    # 피클 리스트를 직접 만들어서 사용하기
+    data = reviews_parcing(file_name)
+    data = data[:y.size]
+    print('y.size', y.size)
+
+    print(data[:10])
+
+    num_classes = np.max(y)
+    print(num_classes, 'classes')
+
+
+    # 원래 코드
+    # with gzip.open('pkl_list_test_review_data_50000.pkl', 'rb') as f:
+    #     data = pickle.load(f)
+    #     data = data[:y.size]
+    #
+    # num_classes = np.max(y)
+    # print(num_classes, 'classes')
+
+    print('Vectorizing sequence data...')
+    # model = Word2Vec.load('model_mincnt_20')
+    np_size = 100
+    model = Word2Vec(sentences=data, size=np_size, window=15, min_count=30, workers=4, sg=1)  # 모델 학습iter=100
+
+    x = np.empty((np_size,), dtype='float32')
+    nwords = 0.
+    counter = 0.
+    # GPU ver.
+    idx_to_key = model.wv.index2word
+
+    # local ver.
+    # idx_to_key = model.wv.index_to_key
+    # key_to_idx = model.wv.key_to_index
+    index2word_set = set(idx_to_key)
+    for idx in tqdm(range(len(data)), desc="벡터화"):
+        featureVec = np.zeros((np_size,), dtype='float32')
+        for word in data[idx]:
+            if word in index2word_set:
+                nwords = nwords + 1.
+                featureVec = np.add(featureVec, model.wv[word])
+        is_all_zero = not np.any(featureVec)
+        if is_all_zero:
+            pass
+        else:
+            featureVec = np.divide(featureVec, nwords)
+            # print('featureVec :', featureVec)
+            x = np.append(x, featureVec, axis=0)
+            # y의 개수를 x만큼 맞추기 위해
+
+            y_list.append(y[idx])
+            raw_reivews.append(df['review'][idx])
+
+            # x[int(counter)] = featureVec
+            # n_values = np.max(featureVec) + 1
+            # x = np.eye(n_values)[x[counter]]
+        counter += 1
+            # print('x :', counter, x[int(counter)])
+    # x = to_categorical(x, num_classes=x)
+    y = np.array(y_list, dtype='int64')
+    x = x[np_size:]
+    x = x.reshape(y.size, -1)
+    print(len(y), 'train sequences')
+    print('x_train shape:', x.shape)
+    print('y shape:', y.shape)
+    print("raw_reviews shape:", len(raw_reivews))
+
+    return x.astype(float), y, raw_reivews
+    '''
 
 

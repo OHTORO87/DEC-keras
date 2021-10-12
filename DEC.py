@@ -26,6 +26,7 @@ import keras.backend as K
 from keras.layers import Dense, Input
 from keras.models import Model
 from keras import callbacks
+from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 import metrics
 from tool import *
@@ -276,7 +277,7 @@ if __name__ == "__main__":
 
     # GPU 서버 변경
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
     # setting the hyper parameters
@@ -301,8 +302,25 @@ if __name__ == "__main__":
 
     # load dataset
     from datasets import load_data
-    x, y, raw_review = load_data(args.dataset)
+    # x, y, raw_review = load_data(args.dataset)
+    x, y, raw_review = load_data('crawling_reviews')
     n_clusters = len(np.unique(y))
+
+
+    # def elbow(x):
+    #     sse = []  # 오차제곱합이 최소가 되도록 클러스터의 중심을 결정
+    #     for i in range(1, 11):
+    #         km = KMeans(n_clusters=i, init="k-means++", random_state=0)
+    #         km.fit(x)
+    #         sse.append(km.inertia_)
+    #     plt.plot(range(1, 11), sse, marker="o")
+    #     plt.xlabel("클러스터 수")
+    #     plt.ylabel("sse")
+    #     plt.show()
+    #
+    # elbow(x)
+
+
 
     init = 'glorot_uniform'
     pretrain_optimizer = 'adam'
@@ -337,9 +355,12 @@ if __name__ == "__main__":
         pretrain_epochs = args.pretrain_epochs
 
     # prepare the DEC model
+    # 기본 설정
     # dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=n_clusters, init=init)
-    # dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 5], n_clusters=2, init=init)
     dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 2], n_clusters=2, init=init)
+
+
+
 
     if args.ae_weights is None:
         dec.pretrain(x=x, y=y, optimizer=pretrain_optimizer,
@@ -358,19 +379,17 @@ if __name__ == "__main__":
     print('clustering time: ', (time() - t0))
 
     # 데이터 확인
-    '''
-    print(f'라벨링 값 : {y}')
-    print(f'예측 값 : {y_pred}')
-    '''
-
-
+    
+    # print(f'라벨링 값 : {y}')
+    # print(f'예측 값 : {y_pred}')
+    
 
     # 클러스터링 데이터 csv 저장
-
     cluster_list = []
 
     # 형태소 분석이 끝난 리뷰 데이터
     # data = load_list()
+
 
     for numbers in range(len(x)):
         review_text = raw_review[numbers]
@@ -387,5 +406,14 @@ if __name__ == "__main__":
         cluster_list.append(dict_cluster)
 
 
+
     # 저장
-    csv_save(cluster_list, 'cluster_test_score0_score5')
+    csv_save(cluster_list, 'cluster_cleandata_1_5_for_pretrain')
+
+    # 저장 데이터 결과 확인
+    df_test_for_mincnt = csv_reader('cluster_cleandata_1_5_for_pretrain')
+    print('각 스코어 개수')
+    print(df_test_for_mincnt['total_score'].value_counts())
+    print('각 클러스터 개수')
+    print(df_test_for_mincnt['cluster_num'].value_counts())
+

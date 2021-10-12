@@ -5,7 +5,6 @@ from konlpy.tag import Okt
 okt = Okt()
 import pickle
 import gzip
-import random
 
 # csv 파일 읽기
 def csv_reader(file_name):
@@ -141,6 +140,7 @@ def csv_reindex(origin_file_name):
 
 
 
+
 if __name__ == "__main__":
 
     files = ['review_data_by_total_score_1',
@@ -148,6 +148,42 @@ if __name__ == "__main__":
              'review_data_by_total_score_3',
              'review_data_by_total_score_4',
              'review_data_by_total_score_5']
+
+    # 데이터 랜덤 섞기
+    '''
+    df_all = csv_reader('test_review_data_5000')
+    df_all = df_all.sample(frac=1).reset_index(drop=True)
+    csv_save(df_all, 'test_review_data_5000')    
+    '''
+
+
+    # kobert용 데이터 만들기
+    '''
+    df_all = csv_reader('test_review_data_5000')
+    
+    # label number change(cuda 오류 : 클래스?의 시작이 1번이면 오류가 난다)
+    df_all.loc[(df_all.total_score == 1), 'total_score'] = 0
+    df_all.loc[(df_all.total_score == 2), 'total_score'] = 1
+    df_all.loc[(df_all.total_score == 3), 'total_score'] = 2
+    df_all.loc[(df_all.total_score == 4), 'total_score'] = 3
+    df_all.loc[(df_all.total_score == 5), 'total_score'] = 4
+
+    # 랜덤하게 섞기
+    df_all = df_all.sample(frac=1).reset_index(drop=True)
+
+    # 리뷰 추출
+    df_train = df_all.loc[:3999, ['review_id', 'preprocessed_review', 'total_score']]
+    df_test = df_all.loc[4000:, ['review_id', 'preprocessed_review', 'total_score']]
+
+    df_train = df_train.dropna(subset=['total_score'])
+    df_train = df_train.reset_index(drop=True)
+
+    df_test = df_test.dropna(subset=['total_score'])
+    df_test = df_test.reset_index(drop=True)
+
+    csv_save(df_train, 'train_data_4000')
+    csv_save(df_test, 'test_data_1000')
+    '''
 
 
     # 리뷰 파싱
@@ -157,34 +193,45 @@ if __name__ == "__main__":
         save_list(list_reviews, f'pkl_list_{file_name}')
     '''
 
-
-    # 극단적인 test data 만들기
     '''
-    df_score_0 = csv_reader(files[0])
+    # test data 만들기
+
+    df_score_1 = csv_reader(files[0])
+    df_score_2 = csv_reader(files[1])
+    df_score_3 = csv_reader(files[2])
+    df_score_4 = csv_reader(files[3])
     df_score_5 = csv_reader(files[4])
 
     # 랜덤하게 섞기
-    df_score_0 = df_score_0.sample(frac=1).reset_index(drop=True)
+    df_score_1 = df_score_1.sample(frac=1).reset_index(drop=True)
+    df_score_2 = df_score_2.sample(frac=1).reset_index(drop=True)
+    df_score_3 = df_score_3.sample(frac=1).reset_index(drop=True)
+    df_score_4 = df_score_4.sample(frac=1).reset_index(drop=True)
     df_score_5 = df_score_5.sample(frac=1).reset_index(drop=True)
 
-    # 리뷰 1000개씩만 추출
-    df_score_0_idx_from_0_to_100 = df_score_0.loc[:999, :]
-    df_score_5_idx_from_0_to_100 = df_score_5.loc[:999, :]
+    # 리뷰 추출
+    df_score_1_selected = df_score_1.iloc[:10000, :]
+    df_score_2_selected = df_score_2.iloc[:10000, :]
+    df_score_3_selected = df_score_3.iloc[:10000, :]
+    df_score_4_selected = df_score_4.iloc[:10000, :]
+    df_score_5_selected = df_score_5.iloc[:10000, :]
 
-    df_score_merged = pd.concat([df_score_0_idx_from_0_to_100, df_score_5_idx_from_0_to_100])
+    df_score_merged = pd.concat([df_score_1_selected,
+                                 df_score_2_selected,
+                                 df_score_3_selected,
+                                 df_score_4_selected,
+                                 df_score_5_selected])
+
     df_score_merged = df_score_merged.dropna(subset=['total_score'])
-
     df_score_merged = df_score_merged.reset_index(drop=True)
-    df_score_merged['total_score'] = int(1)
-
-    csv_save(df_score_merged, 'test_score0_score5')
-
-    # 한개의 파일만 파싱
-
-    list_reviews = reviews_parcing('test_score0_score5')
-    save_list(list_reviews, 'pkl_list_test_score0_score5')
+    csv_save(df_score_merged, 'test_review_data_50000')
     '''
 
+    # 한개의 파일만 파싱
+    '''
+    list_reviews = reviews_parcing('test_review_data_5000')
+    save_list(list_reviews, 'pkl_list_test_review_data_5000')
+    '''
 
     # total_review score 별로 csv 저장
     '''
@@ -197,6 +244,8 @@ if __name__ == "__main__":
 
         csv_save(df_selected_by_score, f'review_data_by_total_score_{score}')
     '''
+
+
 
 
     # 가장 긴 리뷰 길이 구하기
@@ -232,12 +281,14 @@ if __name__ == "__main__":
         csv_save(df_cluster_each, f'cluster_{num}')
     '''
 
+
     '''
     df_cluster_all = csv_reader('cluster_reviewdata_total_score_3')
     cluster_condition = (df_cluster_all.cluster_num == 1)
     df_cluster_each = df_cluster_all[cluster_condition]
     csv_save(df_cluster_each, 'cluster_num_1_of_total_score_3')
     '''
+
 
     # 클러스터링 통계 구해 보기
     '''
@@ -252,16 +303,13 @@ if __name__ == "__main__":
     '''
 
 
+    '''
     df_test_for_mincnt = csv_reader('cluster_test_score0_score5')
     print('각 스코어 개수')
     print(df_test_for_mincnt['total_score'].value_counts())
     print('각 클러스터 개수')
     print(df_test_for_mincnt['cluster_num'].value_counts())
-
-
-
-
-
+    '''
 
 
     '''
@@ -285,6 +333,15 @@ if __name__ == "__main__":
     csv_save(df_cluster_3, 'cluster_3')
     csv_save(df_cluster_4, 'cluster_4')
     '''
+
+    # 데이터 합치기
+    df_01 = csv_reader('cleandata_labeled_1')
+    df_05 = csv_reader('cleandata_labeled_5')
+
+    df_merge = pd.concat([df_05, df_01], ignore_index=True)
+
+    csv_save(df_merge, 'cleandata_labeled_1_5')
+    print(df_merge)
 
 
 
