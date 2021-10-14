@@ -5,7 +5,13 @@ from tool import *
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tqdm import tqdm
 from gensim.models import Word2Vec, KeyedVectors
+import random
+import os
 
+SEED = 42
+random.seed(SEED)
+os.environ["PYTHONHASHSEED"] = str(SEED)
+np.random.seed(SEED)
 
 
 
@@ -342,38 +348,54 @@ def save_model(data_file):
 
 # 크롤링 리뷰 벡터로 불러오는 함수
 def load_crawling_data():
-    np_size = 100
+    np_size = 300
+    window_size = 30
+    min_count_size = 30
+    sg_type = 0 # 1 = skip-gram, 0 = CBOW
+    hs_type = 1 # default값 0, 1이면 softmax 함수 사용
+
     file_name = 'cleandata_labeled_1_5'
     df = csv_reader(file_name)
-    data = reviews_parcing(file_name)
-    model = Word2Vec(sentences=data, size=np_size, window=15, min_count=5, workers=4, sg=1)  # 모델 학습iter=100
-
-    # 모델 vocab 확인
+    sentence_data = reviews_parcing(file_name)
+    '''
+    모델 load(최종 모델 사용시)
+    '''
+    # model = Word2Vec.load('DEC_model_final')
+    '''
+    모델 만들기 > 저장
+    '''
+    model = Word2Vec(sentences=sentence_data, size=np_size, window=window_size, min_count=min_count_size, workers=4, hs=hs_type, sg=sg_type, seed=SEED)  # 모델 학습iter=100
+    model.save(f"model_{file_name}")
+    '''
+    모델 vocab 확인
+    '''
     # words = list(model.wv.vocab)
-
-    # 유사도 테스트
     '''
-    model_result_good = model.wv.most_similar("최고")  # 어떤 단어와 비슷한지 확인
-    model_result_bad = model.wv.most_similar("별로")  # 어떤 단어와 비슷한지 확인
-
-    print(model_result_good)
-    print(model_result_bad)
+    유사도 테스트
     '''
+    # model_result_good = model.wv.most_similar("최고")  # 어떤 단어와 비슷한지 확인
+    # model_result_bad = model.wv.most_similar("별로")  # 어떤 단어와 비슷한지 확인
+    # print(model_result_good)
+    # print(model_result_bad)
 
-    x = np.empty((np_size,), dtype='float32')
-    y = np.array(df['total_score'], dtype='int64')
+
+    # x = np.empty((np_size,), dtype='float64')
+    x = np.zeros((np_size,), dtype='float64') # 0으로 채운 ndarray(100,)
+    y = np.array(df['total_score'], dtype='int64') # 점수 ndarray(5000,)로 만들기
     nwords = 0.
     counter = 0.
     raw_reivews = []
     y_list = []
 
     # GPU ver.
-    idx_to_key = model.wv.index2word
+    idx_to_key = model.wv.index2word # 모델의 사전에 있는 단어명을 담은 리스트
+    # print(idx_to_key)
 
-    index2word_set = set(idx_to_key)
-    for idx in tqdm(range(len(data)), desc="벡터화"):
-        featureVec = np.zeros((np_size,), dtype='float32')
-        for word in data[idx]:
+    index2word_set = set(idx_to_key) # 속도를 위해 set 형태로 초기화
+    print(index2word_set)
+    for idx in tqdm(range(len(sentence_data)), desc="벡터화"):
+        featureVec = np.zeros((np_size,), dtype='float64')
+        for word in sentence_data[idx]:
             if word in index2word_set:
                 nwords = nwords + 1.
                 featureVec = np.add(featureVec, model.wv[word])
@@ -400,12 +422,6 @@ def load_crawling_data():
 
     return x.astype(float), y, raw_reivews
 
-
-
-
-
-
-
     # bert로 vector화
 
     # from transformers import BertTokenizer
@@ -425,13 +441,6 @@ def load_crawling_data():
     # inputs = torch.tensor(tokenized_texts)
     # print(tokenized_texts)
     # print(inputs)
-
-
-
-
-
-
-
 
 
 # 문장에서 단어 벡터의 평균을 구하는 함수

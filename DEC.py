@@ -287,12 +287,13 @@ if __name__ == "__main__":
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--dataset', default='crawling_reviews',
                         choices=['mnist', 'fmnist', 'usps', 'reuters10k', 'stl', 'imdb', 'crawling_reviews'])# 여기에 크롤링 dataset 추가하기
-    parser.add_argument('--batch_size', default=256, type=int)
+    parser.add_argument('--batch_size', default=32, type=int)
     parser.add_argument('--maxiter', default=2e4, type=int)
     parser.add_argument('--pretrain_epochs', default=None, type=int)
     parser.add_argument('--update_interval', default=None, type=int)
     parser.add_argument('--tol', default=0.001, type=float)
-    parser.add_argument('--ae_weights', default=None)
+    # parser.add_argument('--ae_weights', default=None) # 값을 써주기(dir_path)
+    parser.add_argument('--ae_weights', default='./results/ae_weights.h5') # 값을 써주기(dir_path)
     parser.add_argument('--save_dir', default='results')
     args = parser.parse_args()
     print(args)
@@ -347,7 +348,7 @@ if __name__ == "__main__":
     # 수치에 대해 알아보고 조정하기
     elif args.dataset == 'crawling_reviews':
         update_interval = 30
-        pretrain_epochs = 10
+        pretrain_epochs = 50
 
     if args.update_interval is not None:
         update_interval = args.update_interval
@@ -356,7 +357,7 @@ if __name__ == "__main__":
 
     # prepare the DEC model
     # 기본 설정
-    # dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=n_clusters, init=init)
+    # dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 5], n_clusters=n_clusters, init=init)
     dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 2], n_clusters=2, init=init)
 
 
@@ -391,7 +392,7 @@ if __name__ == "__main__":
     # data = load_list()
 
 
-    for numbers in range(len(x)):
+    for numbers in tqdm(range(len(x)), desc='csv 파일화...'):
         review_text = raw_review[numbers]
         labeling = y[numbers]
         cluster_num = y_pred[numbers]
@@ -408,10 +409,10 @@ if __name__ == "__main__":
 
 
     # 저장
-    csv_save(cluster_list, 'cluster_cleandata_1_5_for_pretrain')
+    csv_save(cluster_list, 'cluster_cleandata_labeled_1_5')
 
     # 저장 데이터 결과 확인
-    df_test_for_mincnt = csv_reader('cluster_cleandata_1_5_for_pretrain')
+    df_test_for_mincnt = csv_reader('cluster_cleandata_labeled_1_5')
     print('각 스코어 개수')
     print(df_test_for_mincnt['total_score'].value_counts())
     print('각 클러스터 개수')

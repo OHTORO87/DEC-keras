@@ -193,9 +193,9 @@ if __name__ == "__main__":
         save_list(list_reviews, f'pkl_list_{file_name}')
     '''
 
-    '''
-    # test data 만들기
 
+    # test data 만들기
+    '''
     df_score_1 = csv_reader(files[0])
     df_score_2 = csv_reader(files[1])
     df_score_3 = csv_reader(files[2])
@@ -210,11 +210,11 @@ if __name__ == "__main__":
     df_score_5 = df_score_5.sample(frac=1).reset_index(drop=True)
 
     # 리뷰 추출
-    df_score_1_selected = df_score_1.iloc[:10000, :]
-    df_score_2_selected = df_score_2.iloc[:10000, :]
-    df_score_3_selected = df_score_3.iloc[:10000, :]
-    df_score_4_selected = df_score_4.iloc[:10000, :]
-    df_score_5_selected = df_score_5.iloc[:10000, :]
+    df_score_1_selected = df_score_1.iloc[:1999, :]
+    df_score_2_selected = df_score_2.iloc[:1999, :]
+    df_score_3_selected = df_score_3.iloc[:1999, :]
+    df_score_4_selected = df_score_4.iloc[:1999, :]
+    df_score_5_selected = df_score_5.iloc[:1999, :]
 
     df_score_merged = pd.concat([df_score_1_selected,
                                  df_score_2_selected,
@@ -224,8 +224,10 @@ if __name__ == "__main__":
 
     df_score_merged = df_score_merged.dropna(subset=['total_score'])
     df_score_merged = df_score_merged.reset_index(drop=True)
-    csv_save(df_score_merged, 'test_review_data_50000')
+    csv_save(df_score_merged, 'test_review_data_10000')
     '''
+
+
 
     # 한개의 파일만 파싱
     '''
@@ -335,6 +337,7 @@ if __name__ == "__main__":
     '''
 
     # 데이터 합치기
+    '''
     df_01 = csv_reader('cleandata_labeled_1')
     df_05 = csv_reader('cleandata_labeled_5')
 
@@ -342,6 +345,8 @@ if __name__ == "__main__":
 
     csv_save(df_merge, 'cleandata_labeled_1_5')
     print(df_merge)
+    '''
+
 
 
 
