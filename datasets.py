@@ -348,13 +348,14 @@ def save_model(data_file):
 
 # 크롤링 리뷰 벡터로 불러오는 함수
 def load_crawling_data():
-    np_size = 300
+    np_size = 100
     window_size = 30
-    min_count_size = 30
-    sg_type = 0 # 1 = skip-gram, 0 = CBOW
-    hs_type = 1 # default값 0, 1이면 softmax 함수 사용
+    min_count_size = 50
+    sg_type = 1 # 1 = skip-gram, 0 = CBOW
+    hs_type = 0 # default값 0, 1이면 softmax 함수 사용
+    iter_cnt = 100 # epoch을 나누어  실행하는 횟수
 
-    file_name = 'cleandata_labeled_1_5'
+    file_name = 'SCORE_1_TEST_DATA_30000'
     df = csv_reader(file_name)
     sentence_data = reviews_parcing(file_name)
     '''
@@ -364,7 +365,11 @@ def load_crawling_data():
     '''
     모델 만들기 > 저장
     '''
-    model = Word2Vec(sentences=sentence_data, size=np_size, window=window_size, min_count=min_count_size, workers=4, hs=hs_type, sg=sg_type, seed=SEED)  # 모델 학습iter=100
+    # model = Word2Vec(sentences=sentence_data, size=np_size, window=window_size, min_count=min_count_size, workers=4,
+    #                  hs=hs_type, sg=sg_type, iter=iter_cnt, seed=SEED)
+
+    model = Word2Vec(sentences=sentence_data, size=np_size, window=window_size, min_count=min_count_size, workers=4, sg=sg_type)
+
     model.save(f"model_{file_name}")
     '''
     모델 vocab 확인
@@ -385,6 +390,7 @@ def load_crawling_data():
     nwords = 0.
     counter = 0.
     raw_reivews = []
+    token_reviews = []
     y_list = []
 
     # GPU ver.
@@ -392,7 +398,7 @@ def load_crawling_data():
     # print(idx_to_key)
 
     index2word_set = set(idx_to_key) # 속도를 위해 set 형태로 초기화
-    print(index2word_set)
+    # print(index2word_set)
     for idx in tqdm(range(len(sentence_data)), desc="벡터화"):
         featureVec = np.zeros((np_size,), dtype='float64')
         for word in sentence_data[idx]:
@@ -409,6 +415,8 @@ def load_crawling_data():
 
             y_list.append(y[idx])
             raw_reivews.append(df['review'][idx])
+            # 토크나이징 리뷰 데이터도 추가해줘야 한다
+            token_reviews.append(df['tokenized_review'][idx])
 
         counter += 1
 
@@ -419,11 +427,12 @@ def load_crawling_data():
     print('x_train shape:', x.shape)
     print('y shape:', y.shape)
     print("raw_reviews shape:", len(raw_reivews))
+    print("token_reviews shape:", len(token_reviews))
 
-    return x.astype(float), y, raw_reivews
+    # print(x.astype(float))
+    return x.astype(float), y, raw_reivews, token_reviews
 
     # bert로 vector화
-
     # from transformers import BertTokenizer
     # import torch
     # bert의 코드를 이용하여 단어 임베딩
@@ -441,27 +450,6 @@ def load_crawling_data():
     # inputs = torch.tensor(tokenized_texts)
     # print(tokenized_texts)
     # print(inputs)
-
-
-# 문장에서 단어 벡터의 평균을 구하는 함수
-def make_feat_vec(words, model, num_features):
-
-    # 0으로 채운 배열로 초기화 한다(속도향상을 위해)
-    feature_vec = np.zeros((num_features,), dtype="float32")
-
-    nwords = 0
-    # index2word는 모델 사전에 있는 단어명을 담은 리스트
-    # 속도 향상을 위해 set 형태로 초기화
-    index2word_set = set(model.wv.index2word)
-    # 루프를 돌며 모델 사전에 포함이 되는 단어면 피쳐에 추가
-    for word in words:
-        if word in index2word_set:
-            nwords += 1
-            feature_vec = np.add(feature_vec, model[word])
-
-    # 결과를 단어수로 나누어 평균을 구한다.
-    feature_vec = np.divide(feature_vec, nwords)
-    return feature_vec
 
 
 

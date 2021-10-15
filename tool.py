@@ -5,6 +5,8 @@ from konlpy.tag import Okt
 okt = Okt()
 import pickle
 import gzip
+import os
+import glob
 
 # csv 파일 읽기
 def csv_reader(file_name):
@@ -24,6 +26,47 @@ def csv_save(data_name, file_name):
     # data > data_frame > csv 저장
     crwled_data_frame = pd.DataFrame(data_name)
     crwled_data_frame.to_csv(csv_location, encoding= 'utf-8')
+
+######## csv 파일 merge(헤더가 있는 경우) #########
+def csv_merge(merge_name):
+    path = ".\\merge\\"
+    merge_path = ".\\merge\\{name}_merge.csv".format(name=merge_name)
+    file_list = glob.glob(path + '*.csv')
+    # 첫번째 파일을 선정함(헤더가 남아있을)
+    # 폴더의 나머지 파일들이 for loop로 순회하며 하나씩 선택됨
+    # 선택된 파일들이 차례대로 첫번째 파일에 merge 됨
+
+    # index번호가 그대로 들어가서 총 몇개인지 한번에 보기가 좋지 않음(해결해볼것)
+
+
+    with open(merge_path, 'w', encoding= 'utf-8') as f:
+        for i, file in enumerate(file_list):
+            if i==0: # 첫번째 파일은 그대로 불러오기
+                with open(file, 'r', encoding= 'utf-8') as f2:
+                    while True:
+                        line=f2.readline()
+                        if not line:
+                            break
+                        f.write(line)
+                print(file.split('\\')[-1])
+
+            else:
+                with open(file, 'r', encoding= 'utf-8') as f2:
+                    n=0
+                    while True:
+                        line=f2.readline()
+                        if n!=0: # 2번째 파일부터는 헤더 제외
+                            f.write(line)
+                        if not line:
+                            break
+                        n+=1
+                print(file.split('\\')[-1])
+
+    file_num=len(next(os.walk(".\\merge\\"))[2])
+    print(file_num, 'file merge complete...')
+
+
+
 
 
 
@@ -143,6 +186,62 @@ def csv_reindex(origin_file_name):
 
 if __name__ == "__main__":
 
+    # 클러스터 num 을 선택하여 저장하기
+    # 상위클러스터 저장 > 하위 클러스터 따로 모으기 >
+    '''
+    # 파일 이름과 상위 클러스터 번호를 입력
+    file_name = '10cluster_SCORE_1_TEST_DATA_30000'
+    # new_input_data_file_name = '40cluster_SCORE_1_TEST_DATA_30000'
+    cluster_numbers = [0]
+
+    ###########################수정 불가#####################################
+    df_cluster_all = csv_reader(file_name)
+    for cluster_number in cluster_numbers:
+        cluster_condition = (df_cluster_all.cluster_num == cluster_number)
+        df_cluster_each = df_cluster_all[cluster_condition]
+        df_cluster_each = df_cluster_each.reset_index(drop=True)
+
+        csv_save(df_cluster_each, f'{file_name}_cluster_num_{cluster_number}')
+
+    # 하위 클러스터 데이터 따로 모으기
+    # 전체 데이터 프레임에서 cluster_num이 cluster_number에 있는 경우 삭제
+    df_cluster_all = csv_reader(file_name)
+    for cluster_number in cluster_numbers:
+        cluster_delete_condition = df_cluster_all[df_cluster_all['cluster_num'] == cluster_number].index
+        df_cluster_all = df_cluster_all.drop(cluster_delete_condition, axis=0)
+        df_cluster_all = df_cluster_all.reset_index(drop=True)
+    csv_save(df_cluster_all, f'gather_rest_{file_name}')
+    '''
+
+
+    # 데이터 merge
+    # df_merge = csv_merge(new_input_data_file_name)
+
+    # 다음번 클러스터링 입력 데이터 만들기
+    # name_list = []
+    # for cluster_number in cluster_numbers:
+    #     input_data_name = f'{file_name}_cluster_num_{cluster_number}'
+    #     name_list.append(input_data_name)
+    #
+    # df_01 = csv_reader(name_list[0])
+    # df_02 = csv_reader(name_list[1])
+    # df_03 = csv_reader(name_list[2])
+    # df_04 = csv_reader(name_list[3])
+    # df_05 = csv_reader(name_list[4])
+    # df_merge = pd.concat([df_01,df_02,df_03,df_04,df_05], ignore_index=True)
+    #
+    # csv_save(df_merge, new_input_data_file_name)
+
+
+
+
+
+
+
+
+
+
+
     files = ['review_data_by_total_score_1',
              'review_data_by_total_score_2',
              'review_data_by_total_score_3',
@@ -193,6 +292,25 @@ if __name__ == "__main__":
         save_list(list_reviews, f'pkl_list_{file_name}')
     '''
 
+    # test data 만들기
+
+    df_score_1 = csv_reader('gather_rest_10cluster_SCORE_1_TEST_DATA_30000')
+    df_score_2 = csv_reader('gather_rest_20cluster_SCORE_1_TEST_DATA_30000')
+    df_score_3 = csv_reader('gather_rest_30cluster_SCORE_1_TEST_DATA_30000')
+    df_score_4 = csv_reader('gather_rest_40cluster_SCORE_1_TEST_DATA_30000')
+    df_score_5 = csv_reader('gather_rest_50cluster_SCORE_1_TEST_DATA_30000')
+
+    df_score_merged = pd.concat([df_score_1,
+                                 df_score_2,
+                                 df_score_3,
+                                 df_score_4,
+                                 df_score_5])
+
+    df_score_merged = df_score_merged.reset_index(drop=True)
+    csv_save(df_score_merged, 'outlier_data_SCORE_1_TEST_DATA_30000')
+
+
+
 
     # test data 만들기
     '''
@@ -210,11 +328,14 @@ if __name__ == "__main__":
     df_score_5 = df_score_5.sample(frac=1).reset_index(drop=True)
 
     # 리뷰 추출
-    df_score_1_selected = df_score_1.iloc[:1999, :]
-    df_score_2_selected = df_score_2.iloc[:1999, :]
-    df_score_3_selected = df_score_3.iloc[:1999, :]
-    df_score_4_selected = df_score_4.iloc[:1999, :]
-    df_score_5_selected = df_score_5.iloc[:1999, :]
+    df_score_1_selected = df_score_1.iloc[:30000, :]
+    df_score_2_selected = df_score_2.iloc[:30000, :]
+    df_score_3_selected = df_score_3.iloc[:30000, :]
+    df_score_4_selected = df_score_4.iloc[:30000, :]
+    df_score_5_selected = df_score_5.iloc[:30000, :]
+
+    # df_score_merged = pd.concat([df_score_1_selected])
+
 
     df_score_merged = pd.concat([df_score_1_selected,
                                  df_score_2_selected,
@@ -224,10 +345,8 @@ if __name__ == "__main__":
 
     df_score_merged = df_score_merged.dropna(subset=['total_score'])
     df_score_merged = df_score_merged.reset_index(drop=True)
-    csv_save(df_score_merged, 'test_review_data_10000')
+    csv_save(df_score_1_selected, 'SCORE_1_TEST_DATA_30000')
     '''
-
-
 
     # 한개의 파일만 파싱
     '''
@@ -248,8 +367,6 @@ if __name__ == "__main__":
     '''
 
 
-
-
     # 가장 긴 리뷰 길이 구하기
     '''
     list_pkl = load_list('review_list')
@@ -263,9 +380,8 @@ if __name__ == "__main__":
 
 
     # 전체리뷰(600만개) score 분포 구하기
-
     '''
-    df_review_data_all = csv_reader('all_hotels_review_data(final)')
+    df_review_data_all = csv_reader('cluster_50_review_data_cluster_num_32')
 
     print('** 모든 리뷰 데이터 score 분포 **')
     print('=============================')
@@ -284,19 +400,17 @@ if __name__ == "__main__":
     '''
 
 
-    '''
-    df_cluster_all = csv_reader('cluster_reviewdata_total_score_3')
-    cluster_condition = (df_cluster_all.cluster_num == 1)
-    df_cluster_each = df_cluster_all[cluster_condition]
-    csv_save(df_cluster_each, 'cluster_num_1_of_total_score_3')
-    '''
+
+
+
+
 
 
     # 클러스터링 통계 구해 보기
     '''
     cluster_num = 5
     for num in range(cluster_num):
-        df_test_by_cluster_num = csv_reader(f'cluster_{num}')
+        df_test_by_cluster_num = csv_reader()
         print(f'** cluster_num : {num} **')
         print('** score 분포 **')
         print('==================')
@@ -346,11 +460,4 @@ if __name__ == "__main__":
     csv_save(df_merge, 'cleandata_labeled_1_5')
     print(df_merge)
     '''
-
-
-
-
-
-
-
 

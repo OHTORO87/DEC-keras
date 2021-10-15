@@ -21,12 +21,10 @@ from keras.initializers import VarianceScaling
 
 # 공통
 from time import time
-import numpy as np
 import keras.backend as K
 from keras.layers import Dense, Input
 from keras.models import Model
 from keras import callbacks
-from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 import metrics
 from tool import *
@@ -275,6 +273,10 @@ class DEC(object):
 
 if __name__ == "__main__":
 
+    cluster_num = 50
+    save_file_name = 'output_layer_50_for_test'
+
+
     # GPU 서버 변경
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
@@ -287,13 +289,13 @@ if __name__ == "__main__":
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--dataset', default='crawling_reviews',
                         choices=['mnist', 'fmnist', 'usps', 'reuters10k', 'stl', 'imdb', 'crawling_reviews'])# 여기에 크롤링 dataset 추가하기
-    parser.add_argument('--batch_size', default=32, type=int)
+    parser.add_argument('--batch_size', default=256, type=int)
     parser.add_argument('--maxiter', default=2e4, type=int)
     parser.add_argument('--pretrain_epochs', default=None, type=int)
     parser.add_argument('--update_interval', default=None, type=int)
     parser.add_argument('--tol', default=0.001, type=float)
-    # parser.add_argument('--ae_weights', default=None) # 값을 써주기(dir_path)
-    parser.add_argument('--ae_weights', default='./results/ae_weights.h5') # 값을 써주기(dir_path)
+    parser.add_argument('--ae_weights', default=None) # pretrain 진행할때 사용
+    # parser.add_argument('--ae_weights', default='./results/ae_weights.h5') # 값을 써주기(dir_path)
     parser.add_argument('--save_dir', default='results')
     args = parser.parse_args()
     print(args)
@@ -303,24 +305,8 @@ if __name__ == "__main__":
 
     # load dataset
     from datasets import load_data
-    # x, y, raw_review = load_data(args.dataset)
-    x, y, raw_review = load_data('crawling_reviews')
+    x, y, raw_reviews, token_reviews = load_data('crawling_reviews')
     n_clusters = len(np.unique(y))
-
-
-    # def elbow(x):
-    #     sse = []  # 오차제곱합이 최소가 되도록 클러스터의 중심을 결정
-    #     for i in range(1, 11):
-    #         km = KMeans(n_clusters=i, init="k-means++", random_state=0)
-    #         km.fit(x)
-    #         sse.append(km.inertia_)
-    #     plt.plot(range(1, 11), sse, marker="o")
-    #     plt.xlabel("클러스터 수")
-    #     plt.ylabel("sse")
-    #     plt.show()
-    #
-    # elbow(x)
-
 
 
     init = 'glorot_uniform'
@@ -358,7 +344,7 @@ if __name__ == "__main__":
     # prepare the DEC model
     # 기본 설정
     # dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 5], n_clusters=n_clusters, init=init)
-    dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 2], n_clusters=2, init=init)
+    dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 50], n_clusters=cluster_num, init=init)
 
 
 
@@ -393,13 +379,15 @@ if __name__ == "__main__":
 
 
     for numbers in tqdm(range(len(x)), desc='csv 파일화...'):
-        review_text = raw_review[numbers]
+        review_text = raw_reviews[numbers]
         labeling = y[numbers]
         cluster_num = y_pred[numbers]
+        tokenized_review = token_reviews[numbers]
 
 
         dict_cluster = {
             'review': review_text,
+            'tokenized_review': tokenized_review,
             'total_score': labeling,
             'cluster_num': cluster_num
         }
@@ -409,12 +397,11 @@ if __name__ == "__main__":
 
 
     # 저장
-    csv_save(cluster_list, 'cluster_cleandata_labeled_1_5')
+    csv_save(cluster_list, save_file_name)
 
     # 저장 데이터 결과 확인
-    df_test_for_mincnt = csv_reader('cluster_cleandata_labeled_1_5')
+    df_test_for_mincnt = csv_reader(save_file_name)
     print('각 스코어 개수')
     print(df_test_for_mincnt['total_score'].value_counts())
     print('각 클러스터 개수')
     print(df_test_for_mincnt['cluster_num'].value_counts())
-
